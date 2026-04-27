@@ -1,35 +1,321 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>AAURSI – Accès X25</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>AAURSI • ACCESS-X25</title>
+
+<style>
+body {
+  background: #050505;
+  color: #33ff33;
+  font-family: monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#box {
+  width: 600px;
+  border: 1px solid #33ff33;
+  padding: 20px;
+  background: #0a0a0a;
+}
+
+h2 { 
+  text-align: center;
+  text-shadow: 0 0 10px #33ff33;
+}
+
+input {
+  width: 100%;
+  background: black;
+  border: 1px solid #33ff33;
+  color: #33ff33;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  background: #33ff33;
+  color: black;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #55ff55;
+}
+
+.menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.module {
+  border: 1px solid #33ff33;
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+  background: #0a0a0a;
+  transition: all 0.2s;
+}
+
+.module:hover {
+  background: #1a1a1a;
+  box-shadow: 0 0 10px #33ff33;
+}
+
+#content {
+  margin-top: 15px;
+  white-space: pre-wrap;
+  min-height: 200px;
+  border: 1px solid #33ff33;
+  padding: 10px;
+  background: #0a0a0a;
+  overflow-y: auto;
+}
+
+.alert { color: #ff3333; }
+.success { color: #33ff33; }
+.warning { color: #ffaa33; }
+.info { color: #3399ff; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #33ff33;
+  padding-bottom: 10px;
+}
+
+.user-info {
+  color: #33ff33;
+}
+
+.logout-btn {
+  width: 120px;
+  padding: 5px;
+  font-size: 12px;
+}
+
+.section-title {
+  color: #ffaa33;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ffaa33;
+}
+
+.data-row {
+  margin: 5px 0;
+  padding: 5px;
+  border-left: 3px solid #33ff33;
+  padding-left: 10px;
+}
+
+.restricted {
+  color: #ff3333;
+  font-style: italic;
+}
+</style>
 </head>
+
 <body>
 
-<div id="login">
-  <h1>AAURSI – ACCÈS X25</h1>
-  <p>Authentification requise</p>
-  <input id="user" placeholder="Username">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="login()">Connexion</button>
-  <div id="error"></div>
-</div>
+<div id="box">
+  <h2>ACCESS-X25</h2>
 
-<div id="panel" class="hidden">
-  <h1>Centre de Commandement AAURSI</h1>
-  <p id="welcome"></p>
+  <div id="login-form">
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+    <button onclick="login()">Connexion</button>
 
-  <div class="grid">
-    <button class="box">📂 Opérations en cours</button>
-    <button class="box">🧾 Missions classifiées</button>
-    <button class="box">🧠 Notes internes</button>
-    <button class="box">📡 Logs système</button>
+    <div id="log"></div>
   </div>
 
-  <p class="sign">— VX</p>
+  <div id="panel-main" style="display: none;">
+    <div class="header">
+      <div class="user-info">👤 <span id="logged-user"></span></div>
+      <button class="logout-btn" onclick="logout()">🚪 Déconnexion</button>
+    </div>
+
+    <div class="menu">
+      <div class="module" onclick="openModule('ops')">📂 Opérations</div>
+      <div class="module" onclick="openModule('missions')">🎯 Missions</div>
+      <div class="module" onclick="openModule('notes')">🧠 Notes</div>
+      <div class="module" onclick="openModule('logs')">📡 Logs</div>
+    </div>
+
+    <div id="content"></div>
+  </div>
 </div>
 
-<script src="app.js"></script>
+<script>
+const USERS = {
+  "Dr Zed": {
+    pass: "wxcsd54",
+    type: "zed",
+    clearance: "ALPHA"
+  },
+  "Dr Ix": {
+    pass: "mmopl96",
+    type: "ix",
+    clearance: "BETA"
+  }
+};
+
+let attempts = 0;
+let currentUser = null;
+let currentType = null;
+let currentClearance = null;
+
+function login() {
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+  const log = document.getElementById("log");
+
+  setTimeout(() => {
+    if (USERS[u] && USERS[u].pass === p) {
+      currentUser = u;
+      currentType = USERS[u].type;
+      currentClearance = USERS[u].clearance;
+      loadPanel(u, currentType);
+      attempts = 0;
+    } else {
+      attempts++;
+
+      if (attempts === 1) {
+        log.innerHTML = "<span class='alert'>⚠️ Analyse en cours...</span>";
+      } else if (attempts === 2) {
+        log.innerHTML = "<span class='alert'>⚠️ Anomalie comportementale détectée.</span>";
+      } else {
+        log.innerHTML = "<span class='alert'>🔒 Session surveillée — VX</span>";
+      }
+    }
+  }, 1000);
+}
+
+function logout() {
+  document.getElementById("login-form").style.display = "block";
+  document.getElementById("panel-main").style.display = "none";
+  document.getElementById("user").value = "";
+  document.getElementById("pass").value = "";
+  document.getElementById("log").innerHTML = "";
+  currentUser = null;
+  currentType = null;
+  currentClearance = null;
+  attempts = 0;
+}
+
+function loadPanel(user, type) {
+  document.getElementById("login-form").style.display = "none";
+  document.getElementById("panel-main").style.display = "block";
+  document.getElementById("logged-user").textContent = user + " [" + USERS[user].clearance + "]";
+}
+
+function openModule(mod) {
+  const c = document.getElementById("content");
+
+  if (mod === "ops") {
+    let ops = "<div class='section-title'>📂 OPÉRATIONS EN COURS</div>";
+    ops += "<div class='data-row'><span class='info'>OP-442</span> : Surveillance Point A - ACTIVE</div>";
+    ops += "<div class='data-row'><span class='info'>OP-778</span> : Analyse VX - ACTIVE</div>";
+    ops += "<div class='data-row'><span class='info'>OP-990</span> : Accès restreint - " + 
+           (currentClearance === "ALPHA" ? "<span class='success'>DÉBLOQUÉ</span>" : "<span class='restricted'>CLASSIFIÉ</span>") + "</div>";
+    
+    if (currentClearance === "ALPHA") {
+      ops += "<div class='data-row' style='margin-top: 10px; border-left-color: #ffaa33;'><span class='warning'>[CLASSIFIÉ]</span> OP-VX-CORE : Interface Point A réactive</div>";
+    }
+    
+    c.innerHTML = ops;
+  }
+
+  if (mod === "missions") {
+    let missions = "<div class='section-title'>🎯 MISSIONS ASSIGNÉES</div>";
+    
+    if (currentType === "ix") {
+      missions += "<div class='data-row'><span class='info'>MISSION-Δ19</span></div>";
+      missions += "  État : <span class='success'>ACTIVE</span>\n";
+      missions += "  Priorité : CRITIQUE\n";
+      missions += "  Cible : Analyse VX-CORE\n";
+      missions += "\n";
+      missions += "<div class='data-row'><span class='info'>MISSION-VX-SHADOW</span></div>";
+      missions += "  État : <span class='warning'>EN COURS</span>\n";
+      missions += "  Priorité : HAUTE\n";
+      missions += "  Détails : <span class='restricted'>[ DONNÉES CHIFFRÉES ]</span>\n";
+    } else {
+      missions += "<div class='data-row'><span class='info'>MISSION-ZED-01</span></div>";
+      missions += "  État : <span class='success'>ACTIVE</span>\n";
+      missions += "  Priorité : NORMALE\n";
+      missions += "  Sujet : Maintien Protocole Point A\n";
+      missions += "\n";
+      missions += "<div class='data-row'><span class='warning'>ACCÈS PARTIEL</span></div>";
+      missions += "  Données supérieures masquées (Clearance insuffisante)\n";
+    }
+    
+    c.innerHTML = missions;
+  }
+
+  if (mod === "notes") {
+    let notes = "<div class='section-title'>🧠 NOTES INTERNES</div>";
+    
+    if (currentType === "zed") {
+      notes += "<div class='data-row'><span class='warning'>[NOTE-PERSONNELLE]</span></div>";
+      notes += "Le Point A réagit au langage.\n";
+      notes += "Ce n'est pas une zone.\n";
+      notes += "C'est une interface.\n\n";
+      notes += "<div class='data-row'><span class='warning'>[OBSERVATION]</span></div>";
+      notes += "VX monitore nos mouvements.\n";
+      notes += "Les portes reconnaissent les intentions.\n";
+    } else {
+      notes += "<div class='data-row'><span class='info'>NOTES-SYSTÈME</span></div>";
+      notes += "Opération validée.\n";
+      notes += "Dossier Point A : <span class='restricted'>ARCHIVÉ</span>\n";
+      notes += "\n";
+      notes += "<div class='data-row'><span class='restricted'>ACCÈS RESTREINT</span></div>";
+      notes += "Clearance insuffisante pour consulter les notes personnelles.\n";
+    }
+    
+    c.innerHTML = notes;
+  }
+
+  if (mod === "logs") {
+    let logs = "<div class='section-title'>📡 LOGS SYSTÈME</div>";
+    logs += "<div style='font-size: 11px; color: #666;'>";
+    
+    if (currentType === "zed") {
+      logs += "[ZED.LOG - 14/03/2026 09:47:23]\n";
+      logs += "Signal détecté à 2.4 GHz\n";
+      logs += "Portée : Point A\n";
+      logs += "<span class='warning'>Anomalie</span> : Signal instable\n";
+      logs += "<span class='alert'>Alerte</span> : Présence VX confirmée\n\n";
+      
+      logs += "[ZED.LOG - 14/03/2026 10:02:15]\n";
+      logs += "Transmission sécurisée établie\n";
+      logs += "Chiffrement : ALPHA-256\n";
+      logs += "État : <span class='success'>STABLE</span>\n";
+    } else {
+      logs += "[IX.LOG - 14/03/2026 11:15:42]\n";
+      logs += "Opération VX-CORE validée\n";
+      logs += "Protocole d'effacement : EN COURS\n";
+      logs += "Intégrité données : <span class='warning'>COMPROMISE</span>\n\n";
+      
+      logs += "[IX.LOG - 14/03/2026 11:18:00]\n";
+      logs += "Dossier Point A : <span class='alert'>SUPPRIMÉ</span>\n";
+      logs += "Backup : <span class='restricted'>NON DISPONIBLE</span>\n";
+    }
+    
+    logs += "</div>";
+    c.innerHTML = logs;
+  }
+}
+</script>
+
 </body>
 </html>
