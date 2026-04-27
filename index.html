@@ -5,6 +5,10 @@
 <title>AAURSI • ACCESS-X25</title>
 
 <style>
+* {
+  transition: all 0.3s ease;
+}
+
 body {
   background: #050505;
   color: #33ff33;
@@ -14,6 +18,7 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 20px;
+  margin: 0;
 }
 
 #box {
@@ -21,11 +26,21 @@ body {
   border: 1px solid #33ff33;
   padding: 20px;
   background: #0a0a0a;
+  box-shadow: 0 0 20px rgba(51, 255, 51, 0.3);
+  animation: boxGlow 3s infinite alternate;
+}
+
+@keyframes boxGlow {
+  from { box-shadow: 0 0 20px rgba(51, 255, 51, 0.3); }
+  to { box-shadow: 0 0 40px rgba(51, 255, 51, 0.6); }
 }
 
 h2 { 
   text-align: center;
   text-shadow: 0 0 10px #33ff33;
+  margin: 0 0 20px 0;
+  font-size: 28px;
+  letter-spacing: 2px;
 }
 
 input {
@@ -36,6 +51,13 @@ input {
   padding: 8px;
   margin-bottom: 10px;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  box-shadow: 0 0 10px #33ff33 inset;
+  background: #0a2a0a;
 }
 
 button {
@@ -43,13 +65,20 @@ button {
   background: #33ff33;
   color: black;
   border: none;
-  padding: 8px;
+  padding: 10px;
   cursor: pointer;
   font-weight: bold;
+  transition: all 0.3s ease;
 }
 
 button:hover {
   background: #55ff55;
+  box-shadow: 0 0 15px #33ff33;
+  transform: scale(1.02);
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 .menu {
@@ -57,30 +86,104 @@ button:hover {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 15px;
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .module {
   border: 1px solid #33ff33;
-  padding: 10px;
+  padding: 15px;
   cursor: pointer;
   text-align: center;
   background: #0a0a0a;
   transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.module::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(51, 255, 51, 0.1);
+  transition: left 0.3s ease;
+  z-index: -1;
+}
+
+.module:hover::before {
+  left: 0;
 }
 
 .module:hover {
   background: #1a1a1a;
-  box-shadow: 0 0 10px #33ff33;
+  box-shadow: 0 0 15px #33ff33;
+  transform: translateY(-3px);
+}
+
+.module:active {
+  transform: translateY(0);
+}
+
+.module.active {
+  border-color: #55ff55;
+  box-shadow: 0 0 20px #33ff33;
+  background: #0a2a0a;
 }
 
 #content {
   margin-top: 15px;
   white-space: pre-wrap;
   min-height: 200px;
+  max-height: 400px;
   border: 1px solid #33ff33;
   padding: 10px;
   background: #0a0a0a;
   overflow-y: auto;
+  animation: fadeIn 0.4s ease;
+  position: relative;
+}
+
+#content::-webkit-scrollbar {
+  width: 8px;
+}
+
+#content::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+#content::-webkit-scrollbar-thumb {
+  background: #33ff33;
+  border-radius: 4px;
+}
+
+#content::-webkit-scrollbar-thumb:hover {
+  background: #55ff55;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(10px); }
+}
+
+.scanline {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(51, 255, 51, 0.5), transparent);
+  animation: scanlines 0.1s infinite;
+  pointer-events: none;
 }
 
 .alert { color: #ff3333; }
@@ -94,34 +197,137 @@ button:hover {
   margin-bottom: 15px;
   border-bottom: 1px solid #33ff33;
   padding-bottom: 10px;
+  animation: slideIn 0.5s ease;
 }
 
 .user-info {
   color: #33ff33;
+  font-size: 14px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .logout-btn {
   width: 120px;
-  padding: 5px;
+  padding: 8px;
   font-size: 12px;
 }
 
 .section-title {
   color: #ffaa33;
-  margin-bottom: 10px;
+  margin: 15px 0 10px 0;
+  padding-bottom: 8px;
   border-bottom: 1px solid #ffaa33;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .data-row {
-  margin: 5px 0;
-  padding: 5px;
+  margin: 8px 0;
+  padding: 8px;
   border-left: 3px solid #33ff33;
-  padding-left: 10px;
+  padding-left: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.data-row:hover {
+  border-left-color: #55ff55;
+  background: rgba(51, 255, 51, 0.05);
+  transform: translateX(5px);
 }
 
 .restricted {
   color: #ff3333;
   font-style: italic;
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+  animation: statusBlink 1s infinite;
+}
+
+.status-active {
+  background: #33ff33;
+}
+
+.status-warning {
+  background: #ffaa33;
+  animation: statusBlink 0.5s infinite;
+}
+
+.status-alert {
+  background: #ff3333;
+  animation: statusBlink 0.3s infinite;
+}
+
+@keyframes statusBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.stat-box {
+  border: 1px solid #33ff33;
+  padding: 10px;
+  margin: 10px 0;
+  background: rgba(51, 255, 51, 0.05);
+  border-radius: 2px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #33ff33;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  margin-top: 5px;
+}
+
+.interactive-btn {
+  display: inline-block;
+  padding: 5px 10px;
+  margin: 5px 5px 5px 0;
+  background: #0a0a0a;
+  border: 1px solid #33ff33;
+  color: #33ff33;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s ease;
+}
+
+.interactive-btn:hover {
+  background: #33ff33;
+  color: black;
+  box-shadow: 0 0 10px #33ff33;
+}
+
+#panel-main {
+  animation: slideIn 0.5s ease;
+}
+
+.login-spinner {
+  text-align: center;
+  font-size: 24px;
+  animation: spin 1s linear infinite;
+  margin: 10px 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
 </head>
@@ -146,10 +352,10 @@ button:hover {
     </div>
 
     <div class="menu">
-      <div class="module" onclick="openModule('ops')">📂 Opérations</div>
-      <div class="module" onclick="openModule('missions')">🎯 Missions</div>
-      <div class="module" onclick="openModule('notes')">🧠 Notes</div>
-      <div class="module" onclick="openModule('logs')">📡 Logs</div>
+      <div class="module" data-module="ops" onclick="openModule(this, 'ops')">📂 Opérations</div>
+      <div class="module" data-module="missions" onclick="openModule(this, 'missions')">🎯 Missions</div>
+      <div class="module" data-module="notes" onclick="openModule(this, 'notes')">🧠 Notes</div>
+      <div class="module" data-module="logs" onclick="openModule(this, 'logs')">📡 Logs</div>
     </div>
 
     <div id="content"></div>
@@ -174,11 +380,32 @@ let attempts = 0;
 let currentUser = null;
 let currentType = null;
 let currentClearance = null;
+let currentModule = null;
+
+// Add scanlines effect
+function addScanlines() {
+  const content = document.getElementById("content");
+  if (content.querySelector('.scanline')) return;
+  
+  for (let i = 0; i < 5; i++) {
+    const scanline = document.createElement('div');
+    scanline.className = 'scanline';
+    scanline.style.top = Math.random() * 100 + '%';
+    content.appendChild(scanline);
+  }
+}
 
 function login() {
   const u = document.getElementById("user").value;
   const p = document.getElementById("pass").value;
   const log = document.getElementById("log");
+
+  if (!u || !p) {
+    log.innerHTML = "<span class='alert'>⚠️ Champs requis</span>";
+    return;
+  }
+
+  log.innerHTML = "<div class='login-spinner'>⟳</div>";
 
   setTimeout(() => {
     if (USERS[u] && USERS[u].pass === p) {
@@ -198,7 +425,7 @@ function login() {
         log.innerHTML = "<span class='alert'>🔒 Session surveillée — VX</span>";
       }
     }
-  }, 1000);
+  }, 1500);
 }
 
 function logout() {
@@ -210,111 +437,186 @@ function logout() {
   currentUser = null;
   currentType = null;
   currentClearance = null;
+  currentModule = null;
   attempts = 0;
+  
+  // Remove active class from modules
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
 }
 
 function loadPanel(user, type) {
   document.getElementById("login-form").style.display = "none";
   document.getElementById("panel-main").style.display = "block";
   document.getElementById("logged-user").textContent = user + " [" + USERS[user].clearance + "]";
+  
+  // Auto-open first module
+  setTimeout(() => {
+    const firstModule = document.querySelector('.module');
+    openModule(firstModule, 'ops');
+  }, 300);
 }
 
-function openModule(mod) {
+function openModule(element, mod) {
+  // Remove active class from all modules
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  
+  // Add active class to clicked module
+  if (element) element.classList.add('active');
+  
+  currentModule = mod;
   const c = document.getElementById("content");
+  
+  // Clear previous content
+  c.innerHTML = '';
 
   if (mod === "ops") {
     let ops = "<div class='section-title'>📂 OPÉRATIONS EN COURS</div>";
-    ops += "<div class='data-row'><span class='info'>OP-442</span> : Surveillance Point A - ACTIVE</div>";
-    ops += "<div class='data-row'><span class='info'>OP-778</span> : Analyse VX - ACTIVE</div>";
-    ops += "<div class='data-row'><span class='info'>OP-990</span> : Accès restreint - " + 
+    ops += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>OP-442</span> : Surveillance Point A - <span class='success'>ACTIVE</span></div>";
+    ops += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>OP-778</span> : Analyse VX - <span class='success'>ACTIVE</span></div>";
+    ops += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='info'>OP-990</span> : Accès restreint - " + 
            (currentClearance === "ALPHA" ? "<span class='success'>DÉBLOQUÉ</span>" : "<span class='restricted'>CLASSIFIÉ</span>") + "</div>";
     
+    ops += "<div class='stat-box'>";
+    ops += "<div class='stat-label'>Opérations Actives</div>";
+    ops += "<div class='stat-value'>3 / 8</div>";
+    ops += "</div>";
+    
     if (currentClearance === "ALPHA") {
-      ops += "<div class='data-row' style='margin-top: 10px; border-left-color: #ffaa33;'><span class='warning'>[CLASSIFIÉ]</span> OP-VX-CORE : Interface Point A réactive</div>";
+      ops += "<div class='data-row' style='margin-top: 10px; border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-VX-CORE : Interface Point A réactive</div>";
+      ops += "<div class='stat-box'>";
+      ops += "<div class='stat-label'>Clearance ALPHA</div>";
+      ops += "<div class='stat-value'>ACCÈS COMPLET</div>";
+      ops += "</div>";
     }
     
     c.innerHTML = ops;
   }
 
-  if (mod === "missions") {
+  else if (mod === "missions") {
     let missions = "<div class='section-title'>🎯 MISSIONS ASSIGNÉES</div>";
     
     if (currentType === "ix") {
-      missions += "<div class='data-row'><span class='info'>MISSION-Δ19</span></div>";
-      missions += "  État : <span class='success'>ACTIVE</span>\n";
-      missions += "  Priorité : CRITIQUE\n";
-      missions += "  Cible : Analyse VX-CORE\n";
-      missions += "\n";
-      missions += "<div class='data-row'><span class='info'>MISSION-VX-SHADOW</span></div>";
-      missions += "  État : <span class='warning'>EN COURS</span>\n";
-      missions += "  Priorité : HAUTE\n";
-      missions += "  Détails : <span class='restricted'>[ DONNÉES CHIFFRÉES ]</span>\n";
+      missions += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>MISSION-Δ19</span>";
+      missions += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      missions += "État : <span class='success'>ACTIVE</span><br>";
+      missions += "Priorité : <span class='alert'>CRITIQUE</span><br>";
+      missions += "Cible : Analyse VX-CORE<br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission accepted\")'>Accepter</button>";
+      missions += "</div></div>";
+      
+      missions += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='info'>MISSION-VX-SHADOW</span>";
+      missions += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      missions += "État : <span class='warning'>EN COURS</span><br>";
+      missions += "Priorité : <span class='warning'>HAUTE</span><br>";
+      missions += "Détails : <span class='restricted'>[ DONNÉES CHIFFRÉES ]</span><br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission updated\")'>Modifier</button>";
+      missions += "</div></div>";
     } else {
-      missions += "<div class='data-row'><span class='info'>MISSION-ZED-01</span></div>";
-      missions += "  État : <span class='success'>ACTIVE</span>\n";
-      missions += "  Priorité : NORMALE\n";
-      missions += "  Sujet : Maintien Protocole Point A\n";
-      missions += "\n";
-      missions += "<div class='data-row'><span class='warning'>ACCÈS PARTIEL</span></div>";
-      missions += "  Données supérieures masquées (Clearance insuffisante)\n";
+      missions += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>MISSION-ZED-01</span>";
+      missions += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      missions += "État : <span class='success'>ACTIVE</span><br>";
+      missions += "Priorité : <span class='info'>NORMALE</span><br>";
+      missions += "Sujet : Maintien Protocole Point A<br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission status: OK\")'>Vérifier</button>";
+      missions += "</div></div>";
+      
+      missions += "<div class='data-row'><span class='warning'>ACCÈS PARTIEL</span>";
+      missions += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      missions += "Données supérieures masquées (Clearance insuffisante)";
+      missions += "</div></div>";
     }
+    
+    missions += "<div class='stat-box'>";
+    missions += "<div class='stat-label'>Missions Complétées</div>";
+    missions += "<div class='stat-value'>" + (currentType === "ix" ? "12 / 15" : "8 / 12") + "</div>";
+    missions += "</div>";
     
     c.innerHTML = missions;
   }
 
-  if (mod === "notes") {
+  else if (mod === "notes") {
     let notes = "<div class='section-title'>🧠 NOTES INTERNES</div>";
     
     if (currentType === "zed") {
-      notes += "<div class='data-row'><span class='warning'>[NOTE-PERSONNELLE]</span></div>";
-      notes += "Le Point A réagit au langage.\n";
-      notes += "Ce n'est pas une zone.\n";
-      notes += "C'est une interface.\n\n";
-      notes += "<div class='data-row'><span class='warning'>[OBSERVATION]</span></div>";
-      notes += "VX monitore nos mouvements.\n";
-      notes += "Les portes reconnaissent les intentions.\n";
+      notes += "<div class='data-row'><span class='warning'>[NOTE-PERSONNELLE]</span>";
+      notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px; line-height: 1.6;'>";
+      notes += "Le Point A réagit au langage.<br>";
+      notes += "Ce n'est pas une zone.<br>";
+      notes += "C'est une interface.<br>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Note modifiée\")'>Éditer</button>";
+      notes += "</div></div>";
+      
+      notes += "<div class='data-row'><span class='warning'>[OBSERVATION]</span>";
+      notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px; line-height: 1.6;'>";
+      notes += "VX monitore nos mouvements.<br>";
+      notes += "Les portes reconnaissent les intentions.<br>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Observation confirmée\")'>Confirmer</button>";
+      notes += "</div></div>";
     } else {
-      notes += "<div class='data-row'><span class='info'>NOTES-SYSTÈME</span></div>";
-      notes += "Opération validée.\n";
-      notes += "Dossier Point A : <span class='restricted'>ARCHIVÉ</span>\n";
-      notes += "\n";
-      notes += "<div class='data-row'><span class='restricted'>ACCÈS RESTREINT</span></div>";
-      notes += "Clearance insuffisante pour consulter les notes personnelles.\n";
+      notes += "<div class='data-row'><span class='info'>NOTES-SYSTÈME</span>";
+      notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px; line-height: 1.6;'>";
+      notes += "Opération validée.<br>";
+      notes += "Dossier Point A : <span class='restricted'>ARCHIVÉ</span>";
+      notes += "</div></div>";
+      
+      notes += "<div class='data-row'><span class='restricted'>ACCÈS RESTREINT</span>";
+      notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      notes += "Clearance insuffisante pour consulter les notes personnelles.";
+      notes += "</div></div>";
     }
     
     c.innerHTML = notes;
   }
 
-  if (mod === "logs") {
+  else if (mod === "logs") {
     let logs = "<div class='section-title'>📡 LOGS SYSTÈME</div>";
     logs += "<div style='font-size: 11px; color: #666;'>";
     
     if (currentType === "zed") {
-      logs += "[ZED.LOG - 14/03/2026 09:47:23]\n";
-      logs += "Signal détecté à 2.4 GHz\n";
-      logs += "Portée : Point A\n";
-      logs += "<span class='warning'>Anomalie</span> : Signal instable\n";
-      logs += "<span class='alert'>Alerte</span> : Présence VX confirmée\n\n";
+      logs += "<div class='data-row'>";
+      logs += "[ZED.LOG - 14/03/2026 09:47:23]<br>";
+      logs += "Signal détecté à 2.4 GHz<br>";
+      logs += "Portée : Point A<br>";
+      logs += "<span class='warning'>⚠ Anomalie</span> : Signal instable<br>";
+      logs += "<span class='alert'>🔴 Alerte</span> : Présence VX confirmée<br>";
+      logs += "</div>";
       
-      logs += "[ZED.LOG - 14/03/2026 10:02:15]\n";
-      logs += "Transmission sécurisée établie\n";
-      logs += "Chiffrement : ALPHA-256\n";
-      logs += "État : <span class='success'>STABLE</span>\n";
+      logs += "<div class='data-row'>";
+      logs += "[ZED.LOG - 14/03/2026 10:02:15]<br>";
+      logs += "Transmission sécurisée établie<br>";
+      logs += "Chiffrement : ALPHA-256<br>";
+      logs += "État : <span class='success'>STABLE</span>";
+      logs += "</div>";
     } else {
-      logs += "[IX.LOG - 14/03/2026 11:15:42]\n";
-      logs += "Opération VX-CORE validée\n";
-      logs += "Protocole d'effacement : EN COURS\n";
-      logs += "Intégrité données : <span class='warning'>COMPROMISE</span>\n\n";
+      logs += "<div class='data-row'>";
+      logs += "[IX.LOG - 14/03/2026 11:15:42]<br>";
+      logs += "Opération VX-CORE validée<br>";
+      logs += "Protocole d'effacement : EN COURS<br>";
+      logs += "Intégrité données : <span class='warning'>COMPROMISE</span>";
+      logs += "</div>";
       
-      logs += "[IX.LOG - 14/03/2026 11:18:00]\n";
-      logs += "Dossier Point A : <span class='alert'>SUPPRIMÉ</span>\n";
-      logs += "Backup : <span class='restricted'>NON DISPONIBLE</span>\n";
+      logs += "<div class='data-row'>";
+      logs += "[IX.LOG - 14/03/2026 11:18:00]<br>";
+      logs += "Dossier Point A : <span class='alert'>SUPPRIMÉ</span><br>";
+      logs += "Backup : <span class='restricted'>NON DISPONIBLE</span>";
+      logs += "</div>";
     }
     
     logs += "</div>";
     c.innerHTML = logs;
   }
+  
+  addScanlines();
 }
+
+// Enhanced Enter key functionality
+document.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    if (document.getElementById("login-form").style.display !== 'none') {
+      login();
+    }
+  }
+});
 </script>
 
 </body>
