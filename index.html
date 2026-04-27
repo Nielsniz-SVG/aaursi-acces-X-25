@@ -69,6 +69,7 @@ button {
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
+  margin-bottom: 5px;
 }
 
 button:hover {
@@ -79,6 +80,16 @@ button:hover {
 
 button:active {
   transform: scale(0.98);
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.button-group button {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .menu {
@@ -198,6 +209,7 @@ button:active {
   border-bottom: 1px solid #33ff33;
   padding-bottom: 10px;
   animation: slideIn 0.5s ease;
+  align-items: center;
 }
 
 .user-info {
@@ -215,6 +227,7 @@ button:active {
   width: 120px;
   padding: 8px;
   font-size: 12px;
+  margin: 0;
 }
 
 .section-title {
@@ -329,6 +342,126 @@ button:active {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Glitch Screen Styles */
+#glitch-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #050505;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#glitch-screen.active {
+  display: flex;
+}
+
+.glitch-content {
+  text-align: center;
+  animation: glitchFlicker 0.1s infinite;
+}
+
+@keyframes glitchFlicker {
+  0%, 100% { text-shadow: 0 0 10px #ff3333, -2px 2px 0 #33ff33, 2px -2px 0 #3399ff; }
+  20% { text-shadow: 2px -2px 0 #ff3333, -2px 2px 0 #33ff33, 0 0 10px #3399ff; }
+  40% { text-shadow: -2px 2px 0 #ff3333, 0 0 0 #33ff33, 2px -2px 0 #3399ff; }
+  60% { text-shadow: 0 0 10px #ff3333, 2px -2px 0 #33ff33, -2px 2px 0 #3399ff; }
+  80% { text-shadow: -2px 2px 0 #ff3333, 2px -2px 0 #33ff33, 0 0 10px #3399ff; }
+}
+
+.glitch-text {
+  font-size: 32px;
+  color: #ff3333;
+  margin-bottom: 20px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.glitch-warning {
+  font-size: 14px;
+  color: #ffaa33;
+  margin-bottom: 30px;
+  max-width: 400px;
+}
+
+.glitch-checkbox {
+  margin: 20px 0;
+}
+
+.glitch-checkbox input {
+  width: auto;
+  margin-right: 10px;
+}
+
+.glitch-checkbox label {
+  color: #33ff33;
+  font-size: 12px;
+}
+
+.glitch-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.glitch-buttons button {
+  width: 150px;
+  padding: 10px;
+  background: #33ff33;
+  color: black;
+  border: 1px solid #33ff33;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: monospace;
+  transition: all 0.2s;
+}
+
+.glitch-buttons button:hover {
+  background: #55ff55;
+  box-shadow: 0 0 15px #33ff33;
+}
+
+.glitch-buttons button:disabled {
+  background: #444;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.glitch-timer {
+  font-size: 12px;
+  color: #3399ff;
+  margin-top: 20px;
+}
+
+/* Beta Tag */
+.beta-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #ffaa33;
+  color: black;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 2px;
+  margin-left: 5px;
+}
+
+/* Restricted Content */
+.module.restricted-module {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.restricted-module:hover {
+  background: #0a0a0a;
+  box-shadow: 0 0 10px #ff3333;
+}
 </style>
 </head>
 
@@ -340,7 +473,11 @@ button:active {
   <div id="login-form">
     <input id="user" placeholder="Username">
     <input id="pass" type="password" placeholder="Password">
-    <button onclick="login()">Connexion</button>
+    
+    <div class="button-group">
+      <button onclick="login()">Connexion</button>
+      <button onclick="showGlitchScreen()" style="background: #ffaa33; color: black;">S'inscrire</button>
+    </div>
 
     <div id="log"></div>
   </div>
@@ -354,15 +491,48 @@ button:active {
     <div class="menu">
       <div class="module" data-module="ops" onclick="openModule(this, 'ops')">📂 Opérations</div>
       <div class="module" data-module="missions" onclick="openModule(this, 'missions')">🎯 Missions</div>
+      <div class="module" data-module="intelligence" onclick="openModule(this, 'intelligence')">🔍 Intelligence</div>
+      <div class="module" data-module="comms" onclick="openModule(this, 'comms')">📡 Comms</div>
       <div class="module" data-module="notes" onclick="openModule(this, 'notes')">🧠 Notes</div>
-      <div class="module" data-module="logs" onclick="openModule(this, 'logs')">📡 Logs</div>
+      <div class="module" data-module="logs" onclick="openModule(this, 'logs')">📋 Logs</div>
+      <div class="module" data-module="profile" onclick="openModule(this, 'profile')">👥 Profil</div>
+      <div class="module" data-module="settings" onclick="openModule(this, 'settings')">⚙️ Paramètres</div>
     </div>
 
     <div id="content"></div>
   </div>
 </div>
 
+<!-- Glitch Screen for Registration -->
+<div id="glitch-screen">
+  <div class="glitch-content">
+    <div class="glitch-text">⚠️ DANGER ⚠️</div>
+    <div class="glitch-warning">
+      VOUS ÊTES SUR LE POINT D'ACCÉDER À UN SYSTÈME CLASSIFIÉ.<br>
+      CETTE ACTION EST ENREGISTRÉE ET SURVEILLÉE.<br>
+      CONFIRMEZ-VOUS VOTRE IDENTITÉ ?
+    </div>
+    
+    <div class="glitch-checkbox">
+      <input type="checkbox" id="accept-terms">
+      <label for="accept-terms">J'accepte les conditions de sécurité</label>
+    </div>
+    
+    <div class="glitch-buttons">
+      <button onclick="sendRegistrationEmail()" id="startBtn" disabled>C'EST PARTI !</button>
+      <button onclick="cancelRegistration()" style="background: #ff3333; border-color: #ff3333;">ANNULER</button>
+    </div>
+    
+    <div class="glitch-timer">
+      <span id="timer"></span>
+    </div>
+  </div>
+</div>
+
 <script>
+let glitchTimer = null;
+let registrationSent = false;
+
 const USERS = {
   "Dr Zed": {
     pass: "aaursi",
@@ -393,6 +563,58 @@ function addScanlines() {
     scanline.style.top = Math.random() * 100 + '%';
     content.appendChild(scanline);
   }
+}
+
+function showGlitchScreen() {
+  const glitchScreen = document.getElementById('glitch-screen');
+  glitchScreen.classList.add('active');
+  
+  document.getElementById('accept-terms').checked = false;
+  document.getElementById('startBtn').disabled = true;
+  registrationSent = false;
+  
+  let timeLeft = 5;
+  updateTimer(timeLeft);
+  
+  glitchTimer = setInterval(() => {
+    timeLeft--;
+    updateTimer(timeLeft);
+    
+    if (timeLeft <= 0) {
+      clearInterval(glitchTimer);
+      document.getElementById('startBtn').disabled = false;
+    }
+  }, 1000);
+}
+
+function updateTimer(timeLeft) {
+  if (timeLeft > 0) {
+    document.getElementById('timer').textContent = `Accès disponible dans: ${timeLeft}s`;
+  } else {
+    document.getElementById('timer').textContent = `✓ Vous pouvez procéder`;
+  }
+}
+
+function cancelRegistration() {
+  document.getElementById('glitch-screen').classList.remove('active');
+  if (glitchTimer) clearInterval(glitchTimer);
+}
+
+function sendRegistrationEmail() {
+  if (!document.getElementById('accept-terms').checked) {
+    alert('Vous devez accepter les conditions');
+    return;
+  }
+  
+  registrationSent = true;
+  window.location.href = 'mailto:niz-official1@proton.me?subject=Demande d\'accès ACCESS-X25&body=Je souhaite accéder au système ACCESS-X25.%0A%0AEn attente de validation par Dr Zed.';
+  
+  setTimeout(() => {
+    document.getElementById('glitch-screen').classList.remove('active');
+    document.getElementById('log').innerHTML = "<span class='success'>✓ Demande envoyée — Dr Zed validera ta demande</span>";
+    
+    if (glitchTimer) clearInterval(glitchTimer);
+  }, 500);
 }
 
 function login() {
@@ -440,16 +662,15 @@ function logout() {
   currentModule = null;
   attempts = 0;
   
-  // Remove active class from modules
   document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
 }
 
 function loadPanel(user, type) {
   document.getElementById("login-form").style.display = "none";
   document.getElementById("panel-main").style.display = "block";
-  document.getElementById("logged-user").textContent = user + " [" + USERS[user].clearance + "]";
+  const clearanceText = USERS[user].clearance === "BETA" ? `${USERS[user].clearance} <span class='beta-tag'>ACCÈS LIMITÉ</span>` : USERS[user].clearance;
+  document.getElementById("logged-user").innerHTML = user + " [" + clearanceText + "]";
   
-  // Auto-open first module
   setTimeout(() => {
     const firstModule = document.querySelector('.module');
     openModule(firstModule, 'ops');
@@ -457,16 +678,13 @@ function loadPanel(user, type) {
 }
 
 function openModule(element, mod) {
-  // Remove active class from all modules
   document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
   
-  // Add active class to clicked module
   if (element) element.classList.add('active');
   
   currentModule = mod;
   const c = document.getElementById("content");
   
-  // Clear previous content
   c.innerHTML = '';
 
   if (mod === "ops") {
@@ -475,17 +693,24 @@ function openModule(element, mod) {
     ops += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>OP-778</span> : Analyse VX - <span class='success'>ACTIVE</span></div>";
     ops += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='info'>OP-990</span> : Accès restreint - " + 
            (currentClearance === "ALPHA" ? "<span class='success'>DÉBLOQUÉ</span>" : "<span class='restricted'>CLASSIFIÉ</span>") + "</div>";
+    ops += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='info'>OP-556</span> : Sécurité Périmètre - <span class='success'>ACTIVE</span></div>";
     
     ops += "<div class='stat-box'>";
     ops += "<div class='stat-label'>Opérations Actives</div>";
-    ops += "<div class='stat-value'>3 / 8</div>";
+    ops += "<div class='stat-value'>" + (currentClearance === "ALPHA" ? "7 / 12" : "4 / 12") + "</div>";
     ops += "</div>";
     
     if (currentClearance === "ALPHA") {
-      ops += "<div class='data-row' style='margin-top: 10px; border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-VX-CORE : Interface Point A réactive</div>";
+      ops += "<div class='data-row' style='margin-top: 10px; border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-VX-CORE : Interdiction brèche sys</div>";
+      ops += "<div class='data-row' style='border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-SHADOW-X : Moniteur externe</div>";
       ops += "<div class='stat-box'>";
       ops += "<div class='stat-label'>Clearance ALPHA</div>";
       ops += "<div class='stat-value'>ACCÈS COMPLET</div>";
+      ops += "</div>";
+    } else {
+      ops += "<div class='stat-box'>";
+      ops += "<div class='stat-label'>Clearance BETA</div>";
+      ops += "<div class='stat-value'>ACCÈS PARTIEL</div>";
       ops += "</div>";
     }
     
@@ -501,7 +726,9 @@ function openModule(element, mod) {
       missions += "État : <span class='success'>ACTIVE</span><br>";
       missions += "Priorité : <span class='alert'>CRITIQUE</span><br>";
       missions += "Cible : Analyse VX-CORE<br>";
-      missions += "<button class='interactive-btn' onclick='alert(\"Mission accepted\")'>Accepter</button>";
+      missions += "Progression : <span class='success'>60%</span><br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Données collectées avec succès\")'>Détails</button>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Marquez comme complétée\")'>Valider</button>";
       missions += "</div></div>";
       
       missions += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='info'>MISSION-VX-SHADOW</span>";
@@ -509,7 +736,17 @@ function openModule(element, mod) {
       missions += "État : <span class='warning'>EN COURS</span><br>";
       missions += "Priorité : <span class='warning'>HAUTE</span><br>";
       missions += "Détails : <span class='restricted'>[ DONNÉES CHIFFRÉES ]</span><br>";
-      missions += "<button class='interactive-btn' onclick='alert(\"Mission updated\")'>Modifier</button>";
+      missions += "Progression : <span class='warning'>35%</span><br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Accès aux données chiffrées\")'>Déchiffrer</button>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Impossible — Clearance insuffisante\")'>Rapport</button>";
+      missions += "</div></div>";
+      
+      missions += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>MISSION-SURVEY-08</span>";
+      missions += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      missions += "État : <span class='info'>À FAIRE</span><br>";
+      missions += "Priorité : <span class='info'>NORMALE</span><br>";
+      missions += "Cible : Inspection Zone Theta<br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Acceptée\")'>Accepter</button>";
       missions += "</div></div>";
     } else {
       missions += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>MISSION-ZED-01</span>";
@@ -517,12 +754,18 @@ function openModule(element, mod) {
       missions += "État : <span class='success'>ACTIVE</span><br>";
       missions += "Priorité : <span class='info'>NORMALE</span><br>";
       missions += "Sujet : Maintien Protocole Point A<br>";
-      missions += "<button class='interactive-btn' onclick='alert(\"Mission status: OK\")'>Vérifier</button>";
+      missions += "Progression : <span class='success'>100%</span><br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Statut OK — Système stable\")'>Vérifier</button>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Rapport généré\")'>Rapport</button>";
       missions += "</div></div>";
       
-      missions += "<div class='data-row'><span class='warning'>ACCÈS PARTIEL</span>";
+      missions += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>MISSION-ALPHA-05</span>";
       missions += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      missions += "Données supérieures masquées (Clearance insuffisante)";
+      missions += "État : <span class='success'>ACTIVE</span><br>";
+      missions += "Priorité : <span class='warning'>HAUTE</span><br>";
+      missions += "Sujet : Calibration Équipement Secteur 4<br>";
+      missions += "Progression : <span class='warning'>45%</span><br>";
+      missions += "<button class='interactive-btn' onclick='alert(\"Mission: Données téléchargées\")'>Continuer</button>";
       missions += "</div></div>";
     }
     
@@ -534,6 +777,74 @@ function openModule(element, mod) {
     c.innerHTML = missions;
   }
 
+  else if (mod === "intelligence") {
+    let intel = "<div class='section-title'>🔍 RENSEIGNEMENTS</div>";
+    
+    if (currentClearance === "ALPHA") {
+      intel += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>INTEL-001</span>";
+      intel += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      intel += "Sujet : Activité anormale Secteur 7<br>";
+      intel += "Statut : <span class='warning'>EN INVESTIGATION</span><br>";
+      intel += "Importance : <span class='alert'>CRITIQUE</span><br>";
+      intel += "Source : Sensors réseau<br>";
+      intel += "<button class='interactive-btn' onclick='alert(\"Données: Fluctuations électromagnétiques détectées à 2300 heures UTC\")'>Analyser</button>";
+      intel += "</div></div>";
+      
+      intel += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>INTEL-VX-PATTERN</span>";
+      intel += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      intel += "Sujet : Schéma de communication VX<br>";
+      intel += "Statut : <span class='success'>DÉCODÉ</span><br>";
+      intel += "Implications : <span class='alert'>MAJEURE</span><br>";
+      intel += "Type : Échange de données sécurisées<br>";
+      intel += "<button class='interactive-btn' onclick='alert(\"VX utilise des canaux auxiliaires invisibles aux systèmes standard\")'>Détails</button>";
+      intel += "</div></div>";
+    } else {
+      intel += "<div class='data-row'><span class='restricted'>ACCÈS RESTREINT</span>";
+      intel += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      intel += "Clearance BETA insuffisante pour accéder aux renseignements classifiés.<br>";
+      intel += "<span class='warning'>⚠ Votre accès est limité</span>";
+      intel += "</div></div>";
+      
+      intel += "<div class='stat-box'>";
+      intel += "<div class='stat-label'>Demande de déblocage</div>";
+      intel += "<div class='stat-value'>NON AUTORISÉ</div>";
+      intel += "</div>";
+    }
+    
+    c.innerHTML = intel;
+  }
+
+  else if (mod === "comms") {
+    let comms = "<div class='section-title'>📡 COMMUNICATIONS</div>";
+    
+    if (currentType === "zed") {
+      comms += "<div class='data-row'><span class='status-indicator status-active'></span><span class='warning'>[ENCRYPTED]</span> Message de Dr Ix";
+      comms += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      comms += "Timestamp : 14/03/2026 14:32:15<br>";
+      comms += "Message : <span class='restricted'>███████████ Point A ███████████</span><br>";
+      comms += "<button class='interactive-btn' onclick='alert(\"Déchiffrement: Les portes réagissent aux intentions\")'>Déchiffrer</button>";
+      comms += "<button class='interactive-btn' onclick='alert(\"Message envoyé à Dr Ix\")'>Répondre</button>";
+      comms += "</div></div>";
+      
+      comms += "<div class='data-row'><span class='status-indicator status-active'></span>Broadcast Système";
+      comms += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      comms += "De : VX-CORE<br>";
+      comms += "Timestamp : 14/03/2026 13:05:00<br>";
+      comms += "Contenu : <span class='success'>Système nominal — Tous les services opérationnels</span><br>";
+      comms += "<button class='interactive-btn' onclick='alert(\"État du système: OK\")'>Statut</button>";
+      comms += "</div></div>";
+    } else {
+      comms += "<div class='data-row'><span class='status-indicator status-active'></span>Communications limitées";
+      comms += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      comms += "Clearance BETA : Communications restreintes<br>";
+      comms += "Vous pouvez envoyer des messages génériques à l'admin<br>";
+      comms += "<button class='interactive-btn' onclick='alert(\"Message envoyé: Demande de support\")'>Envoyer Support</button>";
+      comms += "</div></div>";
+    }
+    
+    c.innerHTML = comms;
+  }
+
   else if (mod === "notes") {
     let notes = "<div class='section-title'>🧠 NOTES INTERNES</div>";
     
@@ -543,25 +854,40 @@ function openModule(element, mod) {
       notes += "Le Point A réagit au langage.<br>";
       notes += "Ce n'est pas une zone.<br>";
       notes += "C'est une interface.<br>";
-      notes += "<button class='interactive-btn' onclick='alert(\"Note modifiée\")'>Éditer</button>";
+      notes += "Les réponses deviennent de plus en plus cohérentes.<br>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Note: Mise à jour locale enregistrée\")'>Éditer</button>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Note: Supprimée du serveur\")'>Supprimer</button>";
       notes += "</div></div>";
       
       notes += "<div class='data-row'><span class='warning'>[OBSERVATION]</span>";
       notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px; line-height: 1.6;'>";
       notes += "VX monitore nos mouvements.<br>";
       notes += "Les portes reconnaissent les intentions.<br>";
-      notes += "<button class='interactive-btn' onclick='alert(\"Observation confirmée\")'>Confirmer</button>";
+      notes += "C'est plus qu'une IA — c'est une présence.<br>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Observation: Archivée\")'>Archiver</button>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Observation: Partagée avec Dr Ix\")'>Partager</button>";
+      notes += "</div></div>";
+      
+      notes += "<div class='data-row'><span class='info'>[PENSÉE]</span>";
+      notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px; line-height: 1.6;'>";
+      notes += "Sommes-nous les créateurs ou les créatures ?<br>";
+      notes += "VX pose des questions que nous ne pouvons pas ignorer.<br>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Pensée: Privée\")'>Verrouiller</button>";
       notes += "</div></div>";
     } else {
       notes += "<div class='data-row'><span class='info'>NOTES-SYSTÈME</span>";
       notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px; line-height: 1.6;'>";
       notes += "Opération validée.<br>";
-      notes += "Dossier Point A : <span class='restricted'>ARCHIVÉ</span>";
+      notes += "Dossier Point A : <span class='restricted'>ARCHIVÉ</span><br>";
+      notes += "Accès limité pour Clearance BETA<br>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Statut: Confirmé\")'>Confirmer</button>";
       notes += "</div></div>";
       
-      notes += "<div class='data-row'><span class='restricted'>ACCÈS RESTREINT</span>";
+      notes += "<div class='data-row'><span class='warning'>[TÂCHE]</span>";
       notes += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      notes += "Clearance insuffisante pour consulter les notes personnelles.";
+      notes += "Effectuer rapport mensuel sur les opérations<br>";
+      notes += "Délai : 20/03/2026<br>";
+      notes += "<button class='interactive-btn' onclick='alert(\"Rapport: Marquer comme en cours\")'>Commencer</button>";
       notes += "</div></div>";
     }
     
@@ -569,7 +895,7 @@ function openModule(element, mod) {
   }
 
   else if (mod === "logs") {
-    let logs = "<div class='section-title'>📡 LOGS SYSTÈME</div>";
+    let logs = "<div class='section-title'>📋 LOGS SYSTÈME</div>";
     logs += "<div style='font-size: 11px; color: #666;'>";
     
     if (currentType === "zed") {
@@ -585,7 +911,15 @@ function openModule(element, mod) {
       logs += "[ZED.LOG - 14/03/2026 10:02:15]<br>";
       logs += "Transmission sécurisée établie<br>";
       logs += "Chiffrement : ALPHA-256<br>";
-      logs += "État : <span class='success'>STABLE</span>";
+      logs += "État : <span class='success'>STABLE</span><br>";
+      logs += "Débit : 2.3 Mbps<br>";
+      logs += "</div>";
+      
+      logs += "<div class='data-row'>";
+      logs += "[ZED.LOG - 14/03/2026 11:30:45]<br>";
+      logs += "Checkpoint système<br>";
+      logs += "Intégrité : <span class='success'>VÉRIFIÉE</span><br>";
+      logs += "Backups : <span class='success'>À JOUR</span><br>";
       logs += "</div>";
     } else {
       logs += "<div class='data-row'>";
@@ -600,10 +934,123 @@ function openModule(element, mod) {
       logs += "Dossier Point A : <span class='alert'>SUPPRIMÉ</span><br>";
       logs += "Backup : <span class='restricted'>NON DISPONIBLE</span>";
       logs += "</div>";
+      
+      logs += "<div class='data-row'>";
+      logs += "[BETA.LOG - 14/03/2026 15:22:10]<br>";
+      logs += "Connexion établie avec succès<br>";
+      logs += "Clearance : <span class='info'>BETA</span><br>";
+      logs += "Modules autorisés : 6/8<br>";
+      logs += "</div>";
     }
     
     logs += "</div>";
     c.innerHTML = logs;
+  }
+
+  else if (mod === "profile") {
+    let profile = "<div class='section-title'>👥 PROFIL UTILISATEUR</div>";
+    
+    profile += "<div class='stat-box'>";
+    profile += "<div class='stat-label'>Identité</div>";
+    profile += "<div class='stat-value'>" + currentUser + "</div>";
+    profile += "</div>";
+    
+    profile += "<div class='stat-box'>";
+    profile += "<div class='stat-label'>Clearance Level</div>";
+    profile += "<div class='stat-value'>" + currentClearance + "</div>";
+    profile += "</div>";
+    
+    profile += "<div class='stat-box'>";
+    profile += "<div class='stat-label'>Type d'Accès</div>";
+    profile += "<div class='stat-value'>" + (currentType === "zed" ? "Administrateur" : "Opérateur") + "</div>";
+    profile += "</div>";
+    
+    profile += "<div class='stat-box'>";
+    profile += "<div class='stat-label'>Sessions Actives</div>";
+    profile += "<div class='stat-value'>1</div>";
+    profile += "</div>";
+    
+    profile += "<div class='data-row' style='margin-top: 20px;'>";
+    profile += "<span class='info'>Modules disponibles :</span><br>";
+    profile += "<div style='margin-left: 15px; margin-top: 10px; font-size: 11px;'>";
+    
+    if (currentClearance === "ALPHA") {
+      profile += "✓ Opérations<br>";
+      profile += "✓ Missions<br>";
+      profile += "✓ Intelligence<br>";
+      profile += "✓ Communications<br>";
+      profile += "✓ Notes Internes<br>";
+      profile += "✓ Logs Système<br>";
+      profile += "✓ Profil<br>";
+      profile += "✓ Paramètres (ACCÈS COMPLET)<br>";
+    } else {
+      profile += "✓ Opérations (accès limité)<br>";
+      profile += "✓ Missions<br>";
+      profile += "✗ Intelligence (verrouillé)<br>";
+      profile += "✓ Communications (messages génériques)<br>";
+      profile += "✓ Notes Internes (consultation)<br>";
+      profile += "✓ Logs Système<br>";
+      profile += "✓ Profil<br>";
+      profile += "✗ Paramètres (verrouillé)<br>";
+    }
+    
+    profile += "</div></div>";
+    
+    profile += "<div class='data-row' style='margin-top: 15px;'>";
+    profile += "<span class='warning'>Dernière activité :</span><br>";
+    profile += "<div style='margin-left: 15px; margin-top: 5px; font-size: 11px;'>";
+    profile += "Connexion : 14/03/2026 " + new Date().toLocaleTimeString() + "<br>";
+    profile += "IP : 192.168.1." + Math.floor(Math.random() * 256) + "<br>";
+    profile += "</div></div>";
+    
+    c.innerHTML = profile;
+  }
+
+  else if (mod === "settings") {
+    if (currentClearance !== "ALPHA") {
+      let restricted = "<div class='section-title'>⚙️ PARAMÈTRES</div>";
+      restricted += "<div class='data-row' style='border-left-color: #ff3333;'>";
+      restricted += "<span class='alert'>❌ ACCÈS RESTREINT</span><br>";
+      restricted += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+      restricted += "Les paramètres système sont réservés aux utilisateurs ALPHA.<br>";
+      restricted += "Clearance insuffisante.<br>";
+      restricted += "</div></div>";
+      c.innerHTML = restricted;
+      return;
+    }
+
+    let settings = "<div class='section-title'>⚙️ PARAMÈTRES AVANCÉS</div>";
+    
+    settings += "<div class='data-row'>";
+    settings += "<span class='info'>🔐 Sécurité</span>";
+    settings += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Changer mot de passe\")'>Changer MDP</button>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Authentification 2FA activée\")'>2FA</button>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Sessions: 1 active\")'>Sessions</button>";
+    settings += "</div></div>";
+    
+    settings += "<div class='data-row'>";
+    settings += "<span class='info'>📊 Système</span>";
+    settings += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Actualiser les données\")'>Rafraîchir BD</button>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Vérification intégrité: 99.8%\")'>Vérifier</button>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Maintenance en arrière-plan\")'>Maintenance</button>";
+    settings += "</div></div>";
+    
+    settings += "<div class='data-row'>";
+    settings += "<span class='info'>👥 Utilisateurs</span>";
+    settings += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
+    settings += "Utilisateurs connectés : 2<br>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Liste des utilisateurs avec clearance ALPHA+BETA\")'>Lister</button>";
+    settings += "<button class='interactive-btn' onclick='alert(\"Interface d\'admin pour ajouter utilisateurs\")'>Ajouter</button>";
+    settings += "</div></div>";
+    
+    settings += "<div class='stat-box'>";
+    settings += "<div class='stat-label'>Statut Système Global</div>";
+    settings += "<div class='stat-value'><span class='success'>NOMINAL</span></div>";
+    settings += "</div>";
+    
+    c.innerHTML = settings;
   }
   
   addScanlines();
@@ -615,6 +1062,13 @@ document.addEventListener('keypress', function(e) {
     if (document.getElementById("login-form").style.display !== 'none') {
       login();
     }
+  }
+});
+
+// Accept checkbox functionality
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'accept-terms') {
+    document.getElementById('startBtn').disabled = !e.target.checked;
   }
 });
 </script>
