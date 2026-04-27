@@ -560,6 +560,61 @@ button:active {
   border-radius: 2px;
   margin-left: 5px;
 }
+
+.message-input {
+  width: 100%;
+  height: 60px;
+  background: black;
+  border: 1px solid #33ff33;
+  color: #33ff33;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  font-family: monospace;
+  resize: vertical;
+}
+
+.message-item {
+  background: rgba(51, 255, 51, 0.05);
+  padding: 10px;
+  margin: 8px 0;
+  border-left: 3px solid #33ff33;
+}
+
+.message-from {
+  color: #3399ff;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.message-time {
+  color: #999;
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.message-content {
+  color: #33ff33;
+  margin-top: 5px;
+  word-wrap: break-word;
+}
+
+.recipient-select {
+  width: 100%;
+  background: black;
+  color: #33ff33;
+  border: 1px solid #33ff33;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  font-family: monospace;
+  cursor: pointer;
+}
+
+.send-btn {
+  width: 100%;
+  margin-bottom: 0;
+}
 </style>
 </head>
 
@@ -590,7 +645,7 @@ button:active {
       <div class="module" data-module="ops" onclick="openModule(this, 'ops')">📂 Opérations</div>
       <div class="module" data-module="missions" onclick="openModule(this, 'missions')">🎯 Missions</div>
       <div class="module" data-module="intelligence" onclick="openModule(this, 'intelligence')">🔍 Intelligence</div>
-      <div class="module" data-module="comms" onclick="openModule(this, 'comms')">📡 Comms</div>
+      <div class="module" data-module="messages" onclick="openModule(this, 'messages')">💬 Messages</div>
       <div class="module" data-module="notes" onclick="openModule(this, 'notes')">🧠 Notes</div>
       <div class="module" data-module="logs" onclick="openModule(this, 'logs')">📋 Logs</div>
       <div class="module" data-module="profile" onclick="openModule(this, 'profile')">👥 Profil</div>
@@ -644,7 +699,7 @@ let USERS = {
   }
 };
 
-// Data storage for missions, notes, etc
+// Data storage for missions, notes, messages, etc
 let userData = {};
 
 let attempts = 0;
@@ -673,6 +728,7 @@ function ensureUserData() {
     userData[currentUser] = {
       missions: [],
       notes: [],
+      messages: [],
       completedMissions: 0,
       missionsData: {
         "MISSION-Δ19": { progress: 60, state: "ACTIVE" },
@@ -682,6 +738,10 @@ function ensureUserData() {
         "MISSION-ALPHA-05": { progress: 45, state: "ACTIVE" }
       }
     };
+  }
+  // Ensure messages array exists
+  if (!userData[currentUser].messages) {
+    userData[currentUser].messages = [];
   }
 }
 
@@ -858,7 +918,58 @@ function deleteNote(noteId) {
 }
 
 function sendMessage(recipient) {
+  const messageContent = document.getElementById('message-input').value;
+  
+  if (!recipient) {
+    showNotification('Sélectionnez un destinataire', 'warning');
+    return;
+  }
+  
+  if (!messageContent.trim()) {
+    showNotification('Message vide!', 'warning');
+    return;
+  }
+  
+  // Store message in recipient's inbox
+  if (!userData[recipient]) {
+    userData[recipient] = { messages: [], notes: [], missions: [], completedMissions: 0 };
+  }
+  if (!userData[recipient].messages) {
+    userData[recipient].messages = [];
+  }
+  
+  userData[recipient].messages.push({
+    id: Date.now(),
+    from: currentUser,
+    content: messageContent,
+    timestamp: new Date().toLocaleString('fr-FR'),
+    read: false
+  });
+  
+  // Also store in sender's sent folder
+  userData[currentUser].messages.push({
+    id: Date.now(),
+    to: recipient,
+    content: messageContent,
+    timestamp: new Date().toLocaleString('fr-FR'),
+    type: 'sent'
+  });
+  
+  saveStorage();
   showNotification(`Message envoyé à ${recipient}`, 'success');
+  document.getElementById('message-input').value = '';
+  openModule(document.querySelector('[data-module="messages"]'), 'messages');
+}
+
+function deleteMessage(messageId) {
+  userData[currentUser].messages = userData[currentUser].messages.filter(m => m.id !== messageId);
+  saveStorage();
+  showNotification('Message supprimé', 'success');
+  openModule(document.querySelector('[data-module="messages"]'), 'messages');
+}
+
+function getOtherUsers() {
+  return Object.keys(USERS).filter(user => user !== currentUser);
 }
 
 function changeClearance(username, newClearance) {
@@ -910,8 +1021,8 @@ function openModule(element, mod) {
     ops += "</div>";
     
     if (currentClearance === "ALPHA") {
-      ops += "<div class='data-row' style='margin-top: 10px; border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-VX-CORE : Intégration Avancée</div>";
-      ops += "<div class='data-row' style='border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-SHADOW-X : Moniteur externe</div>";
+      ops += "<div class='data-row' style='margin-top: 10px; border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-VX-CORE : Surveillance système[...]";
+      ops += "<div class='data-row' style='border-left-color: #ffaa33;'><span class='status-indicator status-alert'></span><span class='warning'>[CLASSIFIÉ]</span> OP-SHADOW-X : Moniteur externe[...]";
       ops += "<div class='stat-box'>";
       ops += "<div class='stat-label'>Clearance ALPHA</div>";
       ops += "<div class='stat-value'>ACCÈS COMPLET</div>";
@@ -957,7 +1068,7 @@ function openModule(element, mod) {
       missions += "État : <span class='info'>" + missionsData["MISSION-SURVEY-08"].state + "</span><br>";
       missions += "Priorité : <span class='info'>NORMALE</span><br>";
       missions += "Cible : Inspection Zone Theta<br>";
-      missions += "<button class='interactive-btn' onclick='updateMissionProgress(\"MISSION-SURVEY-08\", Math.min(100, " + (missionsData["MISSION-SURVEY-08"].progress + 25) + ")); updateMissionProgress(\"MISSION-SURVEY-08\", 100);'>Accepter</button>";
+      missions += "<button class='interactive-btn' onclick='updateMissionProgress(\"MISSION-SURVEY-08\", Math.min(100, " + (missionsData["MISSION-SURVEY-08"].progress + 25) + "))'>Inspecter</button>";
       missions += "</div>";
     } else {
       missions += "<div class='mission-item'>";
@@ -998,214 +1109,160 @@ function openModule(element, mod) {
       intel += "Statut : <span class='warning'>EN INVESTIGATION</span><br>";
       intel += "Importance : <span class='alert'>CRITIQUE</span><br>";
       intel += "Source : Sensors réseau<br>";
-      intel += "<button class='interactive-btn' onclick='showNotification(\"Fluctuations électromagnétiques détectées à 2300 heures UTC\")'>Analyser</button>";
       intel += "</div></div>";
       
-      intel += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>INTEL-VX-PATTERN</span>";
+      intel += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='warning'>INTEL-CLASSIFIED-X</span>";
       intel += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      intel += "Sujet : Schéma de communication VX<br>";
-      intel += "Statut : <span class='success'>DÉCODÉ</span><br>";
-      intel += "Implications : <span class='alert'>MAJEURE</span><br>";
-      intel += "Type : Échange de données sécurisées<br>";
-      intel += "<button class='interactive-btn' onclick='showNotification(\"VX utilise des canaux auxiliaires invisibles\")'>Détails</button>";
+      intel += "Sujet : <span class='restricted'>[DONNÉES MASQUÉES]</span><br>";
+      intel += "Statut : <span class='alert'>ALERTE</span><br>";
       intel += "</div></div>";
     } else {
-      intel += "<div class='data-row'><span class='restricted'>ACCÈS RESTREINT</span>";
+      intel += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='warning'>INTEL-BASIC</span>";
       intel += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      intel += "Clearance BETA insuffisante pour accéder aux renseignements classifiés.<br>";
-      intel += "<span class='warning'>⚠ Votre accès est limité</span>";
+      intel += "Accès restreint aux renseignements<br>";
+      intel += "Clearance insuffisante : <span class='warning'>BETA</span><br>";
       intel += "</div></div>";
-      
-      intel += "<div class='stat-box'>";
-      intel += "<div class='stat-label'>Demande de déblocage</div>";
-      intel += "<div class='stat-value'>NON AUTORISÉ</div>";
-      intel += "</div>";
     }
     
     c.innerHTML = intel;
   }
 
-  else if (mod === "comms") {
-    let comms = "<div class='section-title'>📡 COMMUNICATIONS</div>";
+  else if (mod === "messages") {
+    let msgs = "<div class='section-title'>💬 MESSAGES</div>";
     
-    if (currentType === "zed") {
-      comms += "<div class='data-row'><span class='status-indicator status-active'></span><span class='warning'>[ENCRYPTED]</span> Message de Dr Ix";
-      comms += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      comms += "Timestamp : 14/03/2026 14:32:15<br>";
-      comms += "Message : <span class='restricted'>███████████ Point A ███████████</span><br>";
-      comms += "<button class='interactive-btn' onclick='showNotification(\"Déchiffrement: Les portes réagissent aux intentions\")'>Déchiffrer</button>";
-      comms += "<button class='interactive-btn' onclick='sendMessage(\"Dr Melquenn\")'>Répondre</button>";
-      comms += "</div></div>";
-      
-      comms += "<div class='data-row'><span class='status-indicator status-active'></span>Broadcast Système";
-      comms += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      comms += "De : VX-CORE<br>";
-      comms += "Timestamp : 14/03/2026 13:05:00<br>";
-      comms += "Contenu : <span class='success'>Système nominal — Tous les services opérationnels</span><br>";
-      comms += "<button class='interactive-btn' onclick='showNotification(\"Statut du système: OK\")'>Statut</button>";
-      comms += "</div></div>";
+    msgs += "<div style='margin-bottom: 15px;'>";
+    msgs += "<label style='color: #ffaa33; display: block; margin-bottom: 5px;'>DESTINATAIRE :</label>";
+    msgs += "<select class='recipient-select' id='recipient-select'>";
+    msgs += "<option value=''>-- Sélectionner un utilisateur --</option>";
+    
+    const otherUsers = getOtherUsers();
+    otherUsers.forEach(user => {
+      msgs += `<option value='${user}'>${user}</option>`;
+    });
+    
+    msgs += "</select>";
+    msgs += "</div>";
+    
+    msgs += "<textarea class='message-input' id='message-input' placeholder='Écrivez votre message ici....'></textarea>";
+    msgs += "<button class='send-btn' onclick='sendMessage(document.getElementById(\"recipient-select\").value)'>📤 Envoyer</button>";
+    
+    msgs += "<div class='section-title' style='margin-top: 20px;'>📨 MESSAGES REÇUS</div>";
+    
+    const incomingMessages = userData[currentUser].messages.filter(m => m.from);
+    if (incomingMessages.length === 0) {
+      msgs += "<div style='color: #999; margin: 10px 0;'>Aucun message reçu</div>";
     } else {
-      comms += "<div class='data-row'><span class='status-indicator status-active'></span>Communications limitées";
-      comms += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      comms += "Clearance BETA : Communications restreintes<br>";
-      comms += "<button class='interactive-btn' onclick='sendMessage(\"Admin\")'>Envoyer Support</button>";
-      comms += "</div></div>";
+      incomingMessages.forEach(msg => {
+        msgs += "<div class='message-item'>";
+        msgs += "<div class='message-from'>📨 De : " + msg.from + "</div>";
+        msgs += "<div class='message-time'>" + msg.timestamp + "</div>";
+        msgs += "<div class='message-content'>" + msg.content + "</div>";
+        msgs += "<button class='delete-btn interactive-btn' onclick='deleteMessage(" + msg.id + ")' style='font-size: 10px; padding: 3px 6px;'>Supprimer</button>";
+        msgs += "</div>";
+      });
     }
     
-    c.innerHTML = comms;
+    msgs += "<div class='section-title' style='margin-top: 20px;'>📤 MESSAGES ENVOYÉS</div>";
+    
+    const sentMessages = userData[currentUser].messages.filter(m => m.to);
+    if (sentMessages.length === 0) {
+      msgs += "<div style='color: #999; margin: 10px 0;'>Aucun message envoyé</div>";
+    } else {
+      sentMessages.forEach(msg => {
+        msgs += "<div class='message-item'>";
+        msgs += "<div class='message-from'>📤 À : " + msg.to + "</div>";
+        msgs += "<div class='message-time'>" + msg.timestamp + "</div>";
+        msgs += "<div class='message-content'>" + msg.content + "</div>";
+        msgs += "<button class='delete-btn interactive-btn' onclick='deleteMessage(" + msg.id + ")' style='font-size: 10px; padding: 3px 6px;'>Supprimer</button>";
+        msgs += "</div>";
+      });
+    }
+    
+    c.innerHTML = msgs;
   }
 
   else if (mod === "notes") {
-    let notes = "<div class='section-title'>🧠 NOTES INTERNES</div>";
+    let notes = "<div class='section-title'>🧠 NOTES</div>";
+    notes += "<textarea class='note-input' id='note-input' placeholder='Nouvelle note...'></textarea>";
+    notes += "<button class='send-btn' onclick='addNote(document.getElementById(\"note-input\").value)'>➕ Ajouter</button>";
     
-    if (currentType === "zed") {
-      notes += "<textarea class='note-input' id='new-note' placeholder='Ajouter une nouvelle note...'></textarea>";
-      notes += "<button class='interactive-btn' onclick='addNote(document.getElementById(\"new-note\").value)'>Ajouter Note</button><br>";
-    }
-    
-    if (userData[currentUser].notes && userData[currentUser].notes.length > 0) {
-      userData[currentUser].notes.forEach(note => {
-        notes += "<div class='data-row'>";
-        notes += "<div style='margin: 5px 0;'>" + note.content + "</div>";
-        notes += "<div style='font-size: 10px; color: #999;'>" + note.timestamp + "</div>";
-        notes += "<button class='interactive-btn delete-btn' onclick='deleteNote(" + note.id + ")'>Supprimer</button>";
+    const userNotes = userData[currentUser].notes;
+    if (userNotes.length === 0) {
+      notes += "<div style='color: #999; margin: 10px 0;'>Aucune note</div>";
+    } else {
+      userNotes.forEach(note => {
+        notes += "<div class='mission-item'>";
+        notes += "<div style='color: #999; font-size: 10px;'>" + note.timestamp + "</div>";
+        notes += "<div style='color: #33ff33; margin-top: 5px;'>" + note.content + "</div>";
+        notes += "<button class='delete-btn interactive-btn' onclick='deleteNote(" + note.id + ")' style='font-size: 10px; padding: 3px 6px;'>Supprimer</button>";
         notes += "</div>";
       });
-    } else {
-      notes += "<div class='data-row'><span class='info'>Aucune note pour le moment</span></div>";
     }
     
     c.innerHTML = notes;
   }
 
   else if (mod === "logs") {
-    let logs = "<div class='section-title'>📋 LOGS SYSTÈME</div>";
-    logs += "<div style='font-size: 11px; color: #666;'>";
-    
-    if (currentType === "zed") {
-      logs += "<div class='data-row'>";
-      logs += "[ZED.LOG - " + new Date().toLocaleString('fr-FR') + "]<br>";
-      logs += "Connexion établie<br>";
-      logs += "Statut : <span class='success'>ACTIVE</span><br>";
-      logs += "</div>";
-    } else {
-      logs += "<div class='data-row'>";
-      logs += "[IX.LOG - " + new Date().toLocaleString('fr-FR') + "]<br>";
-      logs += "Opération validée<br>";
-      logs += "Statut : <span class='success'>OK</span>";
-      logs += "</div>";
-    }
-    
-    logs += "</div>";
+    let logs = "<div class='section-title'>📋 LOGS</div>";
+    logs += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>LOG-2026-001</span> : Connexion réussie</div>";
+    logs += "<div class='data-row'><span class='status-indicator status-active'></span><span class='info'>LOG-2026-002</span> : Accès base données</div>";
+    logs += "<div class='data-row'><span class='status-indicator status-warning'></span><span class='warning'>LOG-2026-003</span> : Tentative accès restreint</div>";
     c.innerHTML = logs;
   }
 
   else if (mod === "profile") {
-    let profile = "<div class='section-title'>👥 PROFIL UTILISATEUR</div>";
-    
+    let profile = "<div class='section-title'>👥 PROFIL</div>";
+    profile += "<div class='data-row'><span class='info'>Utilisateur :</span> " + currentUser + "</div>";
+    profile += "<div class='data-row'><span class='info'>Type :</span> " + currentType.toUpperCase() + "</div>";
+    profile += "<div class='data-row'><span class='info'>Clearance :</span> <span class='warning'>" + currentClearance + "</span></div>";
     profile += "<div class='stat-box'>";
-    profile += "<div class='stat-label'>Identité</div>";
-    profile += "<div class='stat-value'>" + currentUser + "</div>";
+    profile += "<div class='stat-label'>Statut</div>";
+    profile += "<div class='stat-value' style='color: #33ff33;'>● CONNECTÉ</div>";
     profile += "</div>";
-    
-    profile += "<div class='stat-box'>";
-    profile += "<div class='stat-label'>Clearance Level</div>";
-    profile += "<div class='stat-value'>" + currentClearance + "</div>";
-    profile += "</div>";
-    
-    profile += "<div class='stat-box'>";
-    profile += "<div class='stat-label'>Type d'Accès</div>";
-    profile += "<div class='stat-value'>" + (currentType === "zed" ? "Administrateur" : "Opérateur") + "</div>";
-    profile += "</div>";
-    
-    profile += "<div class='stat-box'>";
-    profile += "<div class='stat-label'>Sessions Actives</div>";
-    profile += "<div class='stat-value'>1</div>";
-    profile += "</div>";
-    
-    profile += "<div class='data-row' style='margin-top: 20px;'>";
-    profile += "<span class='info'>Modules disponibles :</span><br>";
-    profile += "<div style='margin-left: 15px; margin-top: 10px; font-size: 11px;'>";
-    
-    if (currentClearance === "ALPHA") {
-      profile += "✓ Opérations<br>";
-      profile += "✓ Missions<br>";
-      profile += "✓ Intelligence<br>";
-      profile += "✓ Communications<br>";
-      profile += "✓ Notes Internes<br>";
-      profile += "✓ Logs Système<br>";
-      profile += "✓ Profil<br>";
-      profile += "✓ Paramètres (ACCÈS COMPLET)<br>";
-    } else {
-      profile += "✓ Opérations (accès limité)<br>";
-      profile += "✓ Missions<br>";
-      profile += "✗ Intelligence (verrouillé)<br>";
-      profile += "✓ Communications (messages génériques)<br>";
-      profile += "✓ Notes Internes (consultation)<br>";
-      profile += "✓ Logs Système<br>";
-      profile += "✓ Profil<br>";
-      profile += "✗ Paramètres (verrouillé)<br>";
-    }
-    
-    profile += "</div></div>";
-    
     c.innerHTML = profile;
   }
 
   else if (mod === "settings") {
-    let settings = "<div class='section-title'>⚙️ PARAMÈTRES</div>";
-    
-    if (currentType === "zed") {
-      settings += "<div class='section-title' style='color: #ff3333; border-color: #ff3333; margin-top: 20px;'>🔴 ADMIN DASHBOARD</div>";
-      settings += "<div style='font-size: 12px; margin-bottom: 15px;'>";
-      settings += "Gestion des utilisateurs et des clearances<br>";
-      settings += "</div>";
-      
+    if (currentClearance === "ALPHA") {
+      let settings = "<div class='section-title'>⚙️ PARAMÈTRES ADMIN</div>";
+      settings += "<div style='margin: 10px 0;'>";
+      settings += "<div style='color: #ffaa33; margin-bottom: 10px;'>GESTION DES UTILISATEURS</div>";
       settings += "<table class='admin-table'>";
-      settings += "<tr><th>Utilisateur</th><th>Type</th><th>Clearance</th><th>Actions</th></tr>";
+      settings += "<tr><th>Utilisateur</th><th>Clearance</th><th>Actions</th></tr>";
       
-      for (let user in USERS) {
-        settings += "<tr>";
-        settings += "<td>" + user + "</td>";
-        settings += "<td>" + (USERS[user].type === 'zed' ? 'Admin' : 'Opérateur') + "</td>";
-        settings += "<td>";
-        settings += "<select class='admin-select' id='clear-" + user + "'>";
-        settings += "<option value='ALPHA'" + (USERS[user].clearance === 'ALPHA' ? ' selected' : '') + ">ALPHA</option>";
-        settings += "<option value='BETA'" + (USERS[user].clearance === 'BETA' ? ' selected' : '') + ">BETA</option>";
-        settings += "</select>";
-        settings += "</td>";
-        settings += "<td>";
-        if (user !== "Dr Zed") {
-          settings += "<button class='admin-btn' onclick='changeClearance(\"" + user + "\", document.getElementById(\"clear-" + user + "\").value)'>Appliquer</button>";
-          settings += "<button class='admin-btn delete-btn' onclick='deleteUser(\"" + user + "\")'>Supprimer</button>";
-        } else {
-          settings += "<span class='alpha-tag'>PROPRIÉTAIRE</span>";
+      Object.keys(USERS).forEach(user => {
+        if (user !== currentUser) {
+          settings += "<tr>";
+          settings += "<td>" + user + "</td>";
+          settings += "<td><select class='admin-select' id='clear-" + user + "'>";
+          settings += "<option value='ALPHA'" + (USERS[user].clearance === 'ALPHA' ? ' selected' : '') + ">ALPHA</option>";
+          settings += "<option value='BETA'" + (USERS[user].clearance === 'BETA' ? ' selected' : '') + ">BETA</option>";
+          settings += "</select></td>";
+          settings += "<td>";
+          settings += "<button class='admin-btn' onclick='changeClearance(\"" + user + "\", document.getElementById(\"clear-" + user + "\").value)'>✓</button>";
+          settings += "<button class='admin-btn' style='background: #ff3333;' onclick='deleteUser(\"" + user + "\")'>✗</button>";
+          settings += "</td>";
+          settings += "</tr>";
         }
-        settings += "</td>";
-        settings += "</tr>";
-      }
+      });
       
       settings += "</table>";
-      
-      settings += "<div class='stat-box' style='margin-top: 20px;'>";
-      settings += "<div class='stat-label'>Utilisateurs Actifs</div>";
-      settings += "<div class='stat-value'>" + Object.keys(USERS).length + "</div>";
       settings += "</div>";
+      c.innerHTML = settings;
     } else {
-      settings += "<div class='data-row'>";
-      settings += "<span class='restricted'>ACCÈS RESTREINT</span>";
-      settings += "<div style='margin-left: 15px; margin-top: 5px; font-size: 12px;'>";
-      settings += "Vous n'avez pas accès aux paramètres système.<br>";
-      settings += "Seul l'administrateur peut gérer les utilisateurs.";
-      settings += "</div></div>";
+      let settings = "<div class='section-title'>⚙️ PARAMÈTRES</div>";
+      settings += "<div class='data-row'><span class='warning'>Accès aux paramètres admin restreint</span></div>";
+      settings += "<div class='stat-box'>";
+      settings += "<div class='stat-label'>Clearance Requise</div>";
+      settings += "<div class='stat-value'>ALPHA</div>";
+      settings += "</div>";
+      c.innerHTML = settings;
     }
-    
-    c.innerHTML = settings;
   }
 }
 
-// Initialize on load
-window.addEventListener('load', () => {
+// Initialize on page load
+window.addEventListener('load', function() {
   initStorage();
 });
 </script>
